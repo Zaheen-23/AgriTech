@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FarmerNavbar from '../components/FarmerNavbar';
 
-const API = 'http://localhost:5000/api/soil';
-const FARMS_API = 'http://localhost:5000/api/farms/all';
+const API = 'https://agritech-backend-qadd.onrender.com/api/soil';
+const FARMS_API = 'https://agritech-backend-qadd.onrender.com/api/farms/all';
 
 const INITIAL_FORM = {
   farm: '',
