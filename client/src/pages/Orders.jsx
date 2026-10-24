@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 import { useLanguage } from '../context/LanguageContext';
 
-const API = 'http://localhost:5000/api/orders';
+const API = 'https://agritech-backend-qadd.onrender.com/api/orders';const API = 'https://agritech-backend-qadd.onrender.com/api/orders';
 const STEPS = ['Pending', 'Processing', 'Shipped', 'Delivered'];
 const ICONS = { seeds: '🌱', fertilizers: '🌿', pesticides: '🧴', tools: '🛠️', 'organic manure': '🍃' };
 
