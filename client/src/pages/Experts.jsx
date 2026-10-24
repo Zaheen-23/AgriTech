@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 
-const API = 'http://localhost:5000/api/expert';
+const API = 'https://agritech-backend-qadd.onrender.com/api/expert';
 
 const EMPTY = { subject: '', question: '' };
 
