@@ -16,7 +16,7 @@ import { useLanguage } from '../context/LanguageContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 import './Weather.css';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://agritech-backend-qadd.onrender.com/api';
 
 const WEATHER_CODES = {
   0: { label: 'Clear sky', icon: '☀️', theme: 'sunny' },
