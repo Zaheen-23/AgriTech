@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'http://localhost:5000/api/admin';
+const API = 'https://agritech-backend-qadd.onrender.com/api/admin';
 
 const COLORS = {
   bg: '#f4f7f5',
