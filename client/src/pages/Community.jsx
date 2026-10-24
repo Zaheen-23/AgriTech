@@ -4,7 +4,7 @@ import FarmerNavbar from '../components/FarmerNavbar';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
-const API = 'http://localhost:5000/api/community';
+const API = 'https://agritech-backend-qadd.onrender.com/api/community';
 
 function getUserId(user) {
   return user?._id || user?.id || user?.userId || user?.user?._id || '';
