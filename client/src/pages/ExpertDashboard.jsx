@@ -4,7 +4,7 @@ import FarmerNavbar from '../components/FarmerNavbar';
 import { useLanguage } from '../context/LanguageContext';
 import './ExpertDashboard.css'
 
-const API = 'http://localhost:5000/api/expert';
+const API = 'https://agritech-backend-qadd.onrender.com/api/expert';
 
 function ExpertDashboard() {
   const { user } = useAuth();
