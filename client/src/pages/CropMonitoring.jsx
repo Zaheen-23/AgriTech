@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 import SoilCharts from '../components/SoilCharts';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://agritech-backend-qadd.onrender.com/api';
 const SOIL_TYPES = ['Alluvial', 'Black', 'Red', 'Laterite', 'Sandy', 'Mountain'];
 
 const NPK_RANGES = {
