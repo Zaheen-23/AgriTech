@@ -1,0 +1,1546 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend
+} from 'recharts';
+import {
+  Sun, Cloud, Droplets, Wind, AlertTriangle, Search, ShoppingCart, Filter,
+  User, MapPin, CheckCircle, Clock, ShieldCheck, FileText, ChevronRight,
+  Plus, Trash2, ArrowUpDown, Globe, RefreshCw, LayoutDashboard, Settings,
+  Sparkles, Leaf, Check, Phone, Mail, Award, Layers
+} from 'lucide-react';
+
+// ==========================================
+// 1. DICTIONARY & MULTILINGUAL SUPPORT SETUP
+// ==========================================
+
+const LANGUAGES = [
+  { code: 'en', name: 'English', native: 'English' },
+  { code: 'hi', name: 'Hindi', native: 'हिंदी' },
+  { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+  { code: 'mr', name: 'Marathi', native: 'मराठी' },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు' },
+  { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' },
+];
+
+const TRANSLATIONS = {
+  en: {
+    appTitle: "AgriTech Smart Portal",
+    tagline: "Empowering Farmers with Smart Data & Direct Market Access",
+    farmerView: "Farmer View",
+    adminView: "Admin Portal",
+    searchPlaceholder: "Search city or village (e.g. Patna, Ludhiana)...",
+    getForecast: "Get Forecast",
+    weatherTitle: "Weather & Pest Advisory",
+    weatherSub: "7-day micro-climate forecast with actionable crop care alerts",
+    humidity: "Humidity",
+    windSpeed: "Wind Speed",
+    tempMax: "High Temp",
+    tempMin: "Low Temp",
+    rainChance: "Rain Chance",
+    noAlerts: "No severe weather alerts currently. Conditions look favorable.",
+    marketplaceTitle: "Agri Marketplace & Inputs",
+    allCategories: "All Categories",
+    vegetables: "Vegetables",
+    fruits: "Fruits",
+    grains: "Grains",
+    pulses: "Pulses",
+    seeds: "Seeds & Fertilizers",
+    sortByPrice: "Sort by Price",
+    lowToHigh: "Low to High",
+    highToLow: "High to Low",
+    addToCart: "Add to Cart",
+    contactFarmer: "Contact Seller",
+    soilTitle: "Soil Analysis Tracker",
+    submitSoilSample: "Submit Soil Sample",
+    farmLocation: "Farm Location",
+    phLevel: "pH Level",
+    nitrogen: "Nitrogen (N)",
+    phosphorus: "Phosphorus (P)",
+    potassium: "Potassium (K)",
+    status: "Status",
+    pending: "Pending Agronomist Review",
+    reviewed: "Reviewed & Approved",
+    ordersTitle: "Order History & Tracking",
+    cartSummary: "Your Shopping Cart",
+    total: "Total",
+    checkout: "Proceed to Checkout",
+    cartEmpty: "Your cart is currently empty",
+    soilRecoTitle: "Agronomist Recommendation",
+    addCrop: "List New Crop",
+    adminStats: "Platform Overview",
+    totalFarmers: "Active Farmers",
+    totalOrders: "Total Orders Processed",
+    pendingSoilReports: "Pending Soil Audits",
+    marketRevenue: "Marketplace Volume"
+  },
+  hi: {
+    appTitle: "एग्रीटेक स्मार्ट पोर्टल",
+    tagline: "स्मार्ट डेटा और सीधे बाजार पहुंच के साथ किसानों का सशक्तिकरण",
+    farmerView: "किसान व्यू",
+    adminView: "एडमिन पोर्टल",
+    searchPlaceholder: "शहर या गांव खोजें (जैसे पटना, लुधियाना)...",
+    getForecast: "पूर्वानुमान प्राप्त करें",
+    weatherTitle: "मौसम और कीट सलाह",
+    weatherSub: "फसल सुरक्षा अलर्ट के साथ 7 दिवसीय मौसम पूर्वानुमान",
+    humidity: "नमी (आर्द्रता)",
+    windSpeed: "हवा की गति",
+    tempMax: "अधिकतम तापमान",
+    tempMin: "न्यूनतम तापमान",
+    rainChance: "बारिश की संभावना",
+    noAlerts: "फिलहाल मौसम अनुकूल है। कोई चेतावनी नहीं है।",
+    marketplaceTitle: "कृषि मंडी एवं उत्पाद",
+    allCategories: "सभी श्रेणियां",
+    vegetables: "सब्जियां",
+    fruits: "फल",
+    grains: "अनाज",
+    pulses: "दलहन",
+    seeds: "बीज और उर्वरक",
+    sortByPrice: "कीमत के अनुसार क्रमबद्ध करें",
+    lowToHigh: "कम से ज्यादा",
+    highToLow: "ज्यादा से कम",
+    addToCart: "कार्ट में जोड़ें",
+    contactFarmer: "विक्रेता से संपर्क करें",
+    soilTitle: "मृदा परीक्षण रिपोर्ट",
+    submitSoilSample: "मिट्टी का नमूना जमा करें",
+    farmLocation: "खेत का स्थान",
+    phLevel: "pH स्तर",
+    nitrogen: "नाइट्रोजन (N)",
+    phosphorus: "फास्फोरस (P)",
+    potassium: "पोटेशियम (K)",
+    status: "स्थिति",
+    pending: "कृषि वैज्ञानिक समीक्षा लंबित",
+    reviewed: "समीक्षित और स्वीकृत",
+    ordersTitle: "आदेश इतिहास और ट्रैकिंग",
+    cartSummary: "आपकी खरीदारी कार्ट",
+    total: "कुल योग",
+    checkout: "चेकआउट करें",
+    cartEmpty: "आपकी कार्ट अभी खाली है",
+    soilRecoTitle: "कृषि विशेषज्ञ की सिफारिश",
+    addCrop: "नई फसल सूचीबद्ध करें",
+    adminStats: "प्लेटफ़ॉर्म अवलोकन",
+    totalFarmers: "सक्रिय किसान",
+    totalOrders: "कुल संसाधित ऑर्डर",
+    pendingSoilReports: "लंबित मृदा रिपोर्ट",
+    marketRevenue: "कुल बाज़ार व्यापार"
+  },
+  pa: {
+    appTitle: "ਐਗਰੀਟੈਕ ਸਮਾਰਟ ਪੋਰਟਲ",
+    tagline: "ਕਿਸਾਨਾਂ ਲਈ ਸਮਾਰਟ ਡੇਟਾ ਅਤੇ ਸਿੱਧੀ ਮਾਰਕੀਟ ਪਹੁੰਚ",
+    farmerView: "ਕਿਸਾਨ ਵੀਊ",
+    adminView: "ਐਡਮਿਨ ਪੋਰਟਲ",
+    searchPlaceholder: "ਸ਼ਹਿਰ ਜਾਂ ਪਿੰਡ ਦੀ ਖੋਜ ਕਰੋ...",
+    getForecast: "ਮੌਸਮ ਜਾਣਕਾਰੀ ਲਓ",
+    weatherTitle: "ਮੌਸਮ ਅਤੇ ਕੀਟ ਸਲਾਹ",
+    weatherSub: "ਫਸਲ ਦੀ ਦੇਖਭਾਲ ਲਈ 7 ਦਿਨਾਂ ਦਾ ਮੌਸਮ ਪੂਰਵ-ਅਨੁਮਾਨ",
+    humidity: "ਨਮੀ",
+    windSpeed: "ਹਵਾ ਦੀ ਗਤੀ",
+    tempMax: "ਵੱਧ ਤੋਂ ਵੱਧ ਤਾਪਮਾਨ",
+    tempMin: "ਘੱਟੋ-ਘੱਟ ਤਾਪਮਾਨ",
+    rainChance: "ਮੀਂਹ ਦੀ ਸੰਭਾਵਨਾ",
+    noAlerts: "ਫਿਲਹਾਲ ਮੌਸਮ ਠੀਕ ਹੈ। ਕੋਈ ਚੇਤਾਵਨੀ ਨਹੀਂ।",
+    marketplaceTitle: "ਖੇਤੀਬਾੜੀ ਮੰਡੀ",
+    allCategories: "ਸਾਰੀਆਂ ਸ਼੍ਰੇਣੀਆਂ",
+    vegetables: "ਸਬਜ਼ੀਆਂ",
+    fruits: "ਫਲ",
+    grains: "ਅਨਾਜ",
+    pulses: "ਦਾਲਾਂ",
+    seeds: "ਬੀਜ ਅਤੇ ਖਾਦਾਂ",
+    sortByPrice: "ਕੀਮਤ ਅਨੁਸਾਰ",
+    lowToHigh: "ਘੱਟ ਤੋਂ ਵੱਧ",
+    highToLow: "ਵੱਧ ਤੋਂ ਘੱਟ",
+    addToCart: "ਕਾਰਟ ਵਿੱਚ ਪਾਓ",
+    contactFarmer: "ਵੇਚਣ ਵਾਲੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+    soilTitle: "ਮਿੱਟੀ ਦੀ ਜਾਂਚ",
+    submitSoilSample: "ਮਿੱਟੀ ਦਾ ਸੈਂਪਲ ਦਿਓ",
+    farmLocation: "ਖੇਤ ਦਾ ਸਥਾਨ",
+    phLevel: "pH ਪੱਧਰ",
+    nitrogen: "ਨਾਈਟ੍ਰੋਜਨ",
+    phosphorus: "ਫਾਸਫੋਰਸ",
+    potassium: "ਪੋਟਾਸ਼ੀਅਮ",
+    status: "ਸਥਿਤੀ",
+    pending: "ਸਮੀਖਿਆ ਦੀ ਉਡੀਕ",
+    reviewed: "ਮਨਜ਼ੂਰ ਕੀਤਾ ਗਿਆ",
+    ordersTitle: "ਆਰਡਰ ਦਾ ਇਤਿਹਾਸ",
+    cartSummary: "ਤੁਹਾਡੀ ਕਾਰਟ",
+    total: "ਕੁੱਲ",
+    checkout: "ਖਰੀਦਦਾਰੀ ਪੂਰੀ ਕਰੋ",
+    cartEmpty: "ਕਾਰਟ ਖਾਲੀ ਹੈ",
+    soilRecoTitle: "ਮਾਹਿਰ ਦੀ ਸਲਾਹ",
+    addCrop: "ਨਵੀਂ ਫਸਲ ਜੋੜੋ",
+    adminStats: "ਪਲੇਟਫਾਰਮ ਵੇਰਵਾ",
+    totalFarmers: "ਸਰਗਰਮ ਕਿਸਾਨ",
+    totalOrders: "ਕੁੱਲ ਆਰਡਰ",
+    pendingSoilReports: "ਬਾਕੀ ਮਿੱਟੀ ਜਾਂਚ",
+    marketRevenue: "ਕੁੱਲ ਵਪਾਰ"
+  },
+  mr: {
+    appTitle: "ॲग्रीटेक स्मार्ट पोर्टल",
+    tagline: "स्मार्ट डेटा आणि थेट बाजार प्रवेशासह शेतकऱ्यांचे सक्षमीकरण",
+    farmerView: "शेतकरी पहा",
+    adminView: "ॲडमिन पोर्टल",
+    searchPlaceholder: "शहर किंवा गाव शोधा...",
+    getForecast: "हवामान अंदाज घ्या",
+    weatherTitle: "हवामान आणि कीटक सल्ला",
+    weatherSub: "पिकांच्या देखभालीसाठी ७ दिवसांचा हवामान अंदाज",
+    humidity: "आर्द्रता",
+    windSpeed: "वाऱ्याचा वेग",
+    tempMax: "जास्तीत जास्त तापमान",
+    tempMin: "किमान तापमान",
+    rainChance: "पावसाची शक्यता",
+    noAlerts: "सध्या हवामान अनुकूल आहे.",
+    marketplaceTitle: "कृषी बाजारपेठ",
+    allCategories: "सर्व प्रकार",
+    vegetables: "भाजीपाला",
+    fruits: "फळे",
+    grains: "धान्य",
+    pulses: "कठोळ",
+    seeds: "बियाणे आणि खते",
+    sortByPrice: "किंमतीनुसार",
+    lowToHigh: "कमी ते जास्त",
+    highToLow: "जास्त ते कमी",
+    addToCart: "कार्टमध्ये जोडा",
+    contactFarmer: "विक्रेत्याशी संपर्क साधा",
+    soilTitle: "माती परीक्षण अहवाल",
+    submitSoilSample: "मातीचा नमुना सबमिट करा",
+    farmLocation: "शेताचे ठिकाण",
+    phLevel: "pH स्तर",
+    nitrogen: "नायट्रोजन",
+    phosphorus: "फॉस्फरस",
+    potassium: "पोटॅशियम",
+    status: "स्थिती",
+    pending: "तपासणी प्रलंबित",
+    reviewed: "स्वीकृत",
+    ordersTitle: "ऑर्डर इतिहास",
+    cartSummary: "तुमची कार्ट",
+    total: "एकूण",
+    checkout: "चेकआउट करा",
+    cartEmpty: "तुमची कार्ट रिकामी आहे",
+    soilRecoTitle: "कृषी तज्ञांचा सल्ला",
+    addCrop: "नवीन पीक जोडा",
+    adminStats: "प्लॅटफॉर्म विहंगावलोकन",
+    totalFarmers: "सक्रिय शेतकरी",
+    totalOrders: "एकूण ऑर्डर्स",
+    pendingSoilReports: "प्रलंबित माती अहवाल",
+    marketRevenue: "एकूण बाजार उलाढाल"
+  },
+  bn: {
+    appTitle: "এগ্রিটেক স্মার্ট পোর্টাল",
+    tagline: "স্মার্ট তথ্য ও সরাসরি বাজার সুবিধায় কৃষকের উন্নতি",
+    farmerView: "কৃষক ভিউ",
+    adminView: "এডমিন প্যানেল",
+    searchPlaceholder: "শহর বা গ্রাম খুঁজুন...",
+    getForecast: "আবহাওয়া দেখুন",
+    weatherTitle: "আবহাওয়া ও কীটপতঙ্গ সতর্কতা",
+    weatherSub: "ফসলের সুরক্ষায় ৭ দিনের আবহাওয়া পূর্বাভাস",
+    humidity: "আর্দ্রতা",
+    windSpeed: "বাতাসের গতি",
+    tempMax: "সর্বোচ্চ তাপমাত্রা",
+    tempMin: "সর্বনিম্ন তাপমাত্রা",
+    rainChance: "বৃষ্টির সম্ভাবনা",
+    noAlerts: "বর্তমানে আবহাওয়া অনুকূল রয়েছে।",
+    marketplaceTitle: "কৃষি বাজার",
+    allCategories: "সব বিভাগ",
+    vegetables: "শাকসবজি",
+    fruits: "ফলমূল",
+    grains: "দানা শস্য",
+    pulses: "ডাল",
+    seeds: "বীজ ও সার",
+    sortByPrice: "দাম অনুযায়ী",
+    lowToHigh: "কম থেকে বেশি",
+    highToLow: "বেশি থেকে কম",
+    addToCart: "কার্টে যোগ করুন",
+    contactFarmer: "বিক্রেতার সাথে যোগাযোগ",
+    soilTitle: "মাটি পরীক্ষা রিপোর্ট",
+    submitSoilSample: "মাটির নমুনা জমা দিন",
+    farmLocation: "জমির অবস্থান",
+    phLevel: "পিএইচ (pH) মাত্রা",
+    nitrogen: "নাইট্রোজেন",
+    phosphorus: "ফসফরাস",
+    potassium: "পটাশিয়াম",
+    status: "অবস্থা",
+    pending: "পর্যালোচনা অপেক্ষমান",
+    reviewed: "অনুমোদিত",
+    ordersTitle: "অর্ডার হিস্ট্রি",
+    cartSummary: "আপনার কার্ট",
+    total: "মোট",
+    checkout: "চেকআউট করুন",
+    cartEmpty: "কার্ট বর্তমানে খালি",
+    soilRecoTitle: "কৃষি বিশেষজ্ঞের পরামর্শ",
+    addCrop: "নতুন ফসল যোগ করুন",
+    adminStats: "প্ল্যাটফর্ম ওভারভিউ",
+    totalFarmers: "সক্রিয় কৃষক",
+    totalOrders: "মোট অর্ডারের সংখ্যা",
+    pendingSoilReports: "বকেয়া মাটি পরীক্ষা",
+    marketRevenue: "মোট বাজার মূল্য"
+  },
+  ta: {
+    appTitle: "அக்ரிடெக் ஸ்மார்ட் போர்ட்டல்",
+    tagline: "விவசாயிகளுக்கு நேரடி சந்தை மற்றும் ஸ்மார்ட் தரவு உதவி",
+    farmerView: "விவசாயி பார்வை",
+    adminView: "நிர்வாகி போர்ட்டல்",
+    searchPlaceholder: "ஊர் அல்லது நகரத்தை தேடுக...",
+    getForecast: "வானிலை பெறுக",
+    weatherTitle: "வானிலை மற்றும் பூச்சி எச்சரிக்கை",
+    weatherSub: "பயிர் பாதுகாப்பிற்கான 7 நாள் வானிலை முன்னறிவிப்பு",
+    humidity: "ஈரப்பதம்",
+    windSpeed: "காற்றின் வேகம்",
+    tempMax: "அதிகபட்ச வெப்பநிலை",
+    tempMin: "குறைந்தபட்ச வெப்பநிலை",
+    rainChance: "மழை வாய்ப்பு",
+    noAlerts: "தற்போது வானிலை சாதகமாக உள்ளது.",
+    marketplaceTitle: "வேளாண் சந்தை",
+    allCategories: "அனைத்து வகைகள்",
+    vegetables: "காய்கறிகள்",
+    fruits: "பழங்கள்",
+    grains: "தானியங்கள்",
+    pulses: "பருப்பு வகைகள்",
+    seeds: "விதை மற்றும் உரங்கள்",
+    sortByPrice: "விலை வரிசை",
+    lowToHigh: "குறைந்ததில் இருந்து அதிகம்",
+    highToLow: "அதிகத்தில் இருந்து குறைவு",
+    addToCart: "கார்ட்டில் சேர்",
+    contactFarmer: "விற்பனையாளரை தொடர்பு கொள்க",
+    soilTitle: "மண் பரிசோதனை அறிக்கை",
+    submitSoilSample: "மண் மாதிரியை சமர்ப்பிக்கவும்",
+    farmLocation: "நிலத்தின் அமைவிடம்",
+    phLevel: "pH அளவு",
+    nitrogen: "நைட்ரஜன்",
+    phosphorus: "பாஸ்பரஸ்",
+    potassium: "பொட்டாசியம்",
+    status: "நிலை",
+    pending: "ஆய்வில் உள்ளது",
+    reviewed: "சரிபார்க்கப்பட்டது",
+    ordersTitle: "ஆர்டர் வரலாறு",
+    cartSummary: "உங்கள் கார்ட்",
+    total: "மொத்தம்",
+    checkout: "ஆர்டர் செய்க",
+    cartEmpty: "கார்ட் காலியாக உள்ளது",
+    soilRecoTitle: "வேளாண் நிபுணர் பரிந்துரை",
+    addCrop: "புதிய பயிர் சேர்க்க",
+    adminStats: "தளத்தின் பார்வை",
+    totalFarmers: "செயலில் உள்ள விவசாயிகள்",
+    totalOrders: "மொத்த ஆர்டர்கள்",
+    pendingSoilReports: "நிலுவையில் உள்ள மண் பரிசோதனைகள்",
+    marketRevenue: "மொத்த வணிகம்"
+  },
+  te: {
+    appTitle: "అగ్రిటెక్ స్మార్ట్ పోర్టల్",
+    tagline: "రైతులకు స్మార్ట్ డేటా మరియు ప్రత్యక్ష మార్కెట్ సదుపాయం",
+    farmerView: "రైతు వీక్షణ",
+    adminView: "అడ్మిన్ పోర్టల్",
+    searchPlaceholder: "నగరం లేదా గ్రామాన్ని శోధించండి...",
+    getForecast: "వాతావరణం చూడండి",
+    weatherTitle: "వాతావరణం & పురుగుల హెచ్చరిక",
+    weatherSub: "పంట సంరక్షణ కోసం 7 రోజుల వాతావరణ అంచనా",
+    humidity: "తేమ",
+    windSpeed: "గాలి వేగం",
+    tempMax: "గరిష్ట ఉష్ణోగ్రత",
+    tempMin: "కనిష్ట ఉష్ణోగ్రత",
+    rainChance: "వర్ష సూచన",
+    noAlerts: "ప్రస్తుతం వాతావరణం అనుకూలంగా ఉంది.",
+    marketplaceTitle: "వ్యవసాయ మార్కెట్",
+    allCategories: "అన్ని వర్గాలు",
+    vegetables: "కూరగాయలు",
+    fruits: "పండ్లు",
+    grains: "ధాన్యాలు",
+    pulses: "పప్పుధాన్యాలు",
+    seeds: "విత్తనాలు & ఎరువులు",
+    sortByPrice: "ధర ఆధారంగా",
+    lowToHigh: "తక్కువ నుండి ఎక్కువ",
+    highToLow: "ఎక్కువ నుండి తక్కువ",
+    addToCart: "కార్ట్‌కు జోడించండి",
+    contactFarmer: "అమ్మకందారుడిని సంప్రదించండి",
+    soilTitle: "నేల పరీక్ష నివేదిక",
+    submitSoilSample: "నేల నమూనాను సమర్పించండి",
+    farmLocation: "పొలం ప్రాంతం",
+    phLevel: "pH స్థాయి",
+    nitrogen: "నైట్రోజన్",
+    phosphorus: "ఫాస్ఫరస్",
+    potassium: "పొటాషియం",
+    status: "స్థితి",
+    pending: "పరిశీలనలో ఉంది",
+    reviewed: "ఆమోదించబడింది",
+    ordersTitle: "ఆర్డర్ హిస్టరీ",
+    cartSummary: "మీ కార్ట్",
+    total: "మొత్తం",
+    checkout: "చెకౌట్ చేయండి",
+    cartEmpty: "కార్ట్ ఖాళీగా ఉంది",
+    soilRecoTitle: "వ్యవసాయ నిపుణుడి సలహా",
+    addCrop: "కొత్త పంటను జోడించండి",
+    adminStats: "ప్లాట్‌ఫారమ్ వివరాలు",
+    totalFarmers: "యాక్టివ్ రైతులు",
+    totalOrders: "మొత్తం ఆర్డర్లు",
+    pendingSoilReports: "పెండింగ్ నేల నివేదికలు",
+    marketRevenue: "మొత్తం మార్కెట్ విలువ"
+  },
+  gu: {
+    appTitle: "એગ્રીટેક સ્માર્ટ પોર્ટલ",
+    tagline: "સ્માર્ટ ડેટા અને સીધા બજાર સાથે ખેડૂતોનું સશક્તિકરણ",
+    farmerView: "ખેડૂત વ્યુ",
+    adminView: "એડમિન પોર્ટલ",
+    searchPlaceholder: "શહેર અથવા ગામ શોધો...",
+    getForecast: "હવામાન મેળવો",
+    weatherTitle: "હવામાન અને જીવાત સલાહ",
+    weatherSub: "પાકની સંભાળ માટે 7 દિવસની હવામાન માહિતી",
+    humidity: "ભેજ",
+    windSpeed: "પવનની ઝડપ",
+    tempMax: "મહત્તમ તાપમાન",
+    tempMin: "ન્યૂનતમ તાપમાન",
+    rainChance: "વરસાદની શક્યતા",
+    noAlerts: "હાલમાં હવામાન અનુકૂળ છે.",
+    marketplaceTitle: "કૃષિ બજાર",
+    allCategories: "બધી કેટેગરીઝ",
+    vegetables: "શાકભાજી",
+    fruits: "ફળો",
+    grains: "અનાજ",
+    pulses: "કઠોળ",
+    seeds: "બીજ અને ખાતર",
+    sortByPrice: "કિંમત પ્રમાણે",
+    lowToHigh: "ઓછી થી વધુ",
+    highToLow: "વધુ થી ઓછી",
+    addToCart: "કાર્ટમાં ઉમેરો",
+    contactFarmer: "વિક્રેતાનો સંપર્ક કરો",
+    soilTitle: "જમીન ચકાસણી રિપોર્ટ",
+    submitSoilSample: "જમીનનું સેમ્પલ આપો",
+    farmLocation: "ખેતરનું સ્થળ",
+    phLevel: "pH સ્તર",
+    nitrogen: "નાઇટ્રોજન",
+    phosphorus: "ફોસ્ફરસ",
+    potassium: "પોટેશિયમ",
+    status: "સ્થિતિ",
+    pending: "સમીક્ષા બાકી છે",
+    reviewed: "મંજૂર થયેલ",
+    ordersTitle: "ઓર્ડર હિસ્ટ્રી",
+    cartSummary: "તમારી કાર્ટ",
+    total: "કુલ",
+    checkout: "ચેકઆઉટ કરો",
+    cartEmpty: "તમારી કાર્ટ ખાલી છે",
+    soilRecoTitle: "કૃષિ નિષ્ણાતની સલાહ",
+    addCrop: "નવો પાક ઉમેરો",
+    adminStats: "પ્લેટફોર્મ વિગત",
+    totalFarmers: "સક્રિય ખેડૂતો",
+    totalOrders: "કુલ ઓર્ડર",
+    pendingSoilReports: "બાકી જમીન રિપોર્ટ",
+    marketRevenue: "કુલ વેપાર"
+  }
+};
+
+// Weather Code mapping for human-readable labels
+const WEATHER_CODES = {
+  0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+  45: 'Foggy', 48: 'Depositing Rime Fog', 51: 'Light Drizzle', 53: 'Moderate Drizzle',
+  55: 'Dense Drizzle', 61: 'Slight Rain', 63: 'Moderate Rain', 65: 'Heavy Rain',
+  80: 'Rain Showers', 81: 'Moderate Showers', 82: 'Violent Showers',
+  95: 'Thunderstorm', 96: 'Thunderstorm with Hail', 99: 'Heavy Thunderstorm'
+};
+
+// ==========================================
+// 2. DUMMY INITIAL DATA
+// ==========================================
+
+const INITIAL_MARKETPLACE_ITEMS = [
+  {
+    id: 1,
+    name: 'Organic Sharbati Wheat',
+    category: 'Grains',
+    price: 32, // per kg
+    unit: 'kg',
+    quantity: 450,
+    farmerName: 'Ramesh Singh',
+    location: 'Ludhiana, Punjab',
+    contact: '+91 98765 43210',
+    image: '🌾',
+    badge: 'Organic Certified'
+  },
+  {
+    id: 2,
+    name: 'Fresh Desi Tomatoes',
+    category: 'Vegetables',
+    price: 24,
+    unit: 'kg',
+    quantity: 120,
+    farmerName: 'Sunita Devi',
+    location: 'Patna, Bihar',
+    contact: '+91 91234 56789',
+    image: '🍅',
+    badge: 'Farm Fresh'
+  },
+  {
+    id: 3,
+    name: 'High-Yield Hybrid Rice Seeds',
+    category: 'Seeds',
+    price: 180,
+    unit: 'pack',
+    quantity: 80,
+    farmerName: 'AgriTech Official Direct',
+    location: 'Karnal, Haryana',
+    contact: '+91 80000 11223',
+    image: '🌱',
+    badge: 'Certified Seed'
+  },
+  {
+    id: 4,
+    name: 'Alphonsa Mangoes (Grade A)',
+    category: 'Fruits',
+    price: 120,
+    unit: 'kg',
+    quantity: 200,
+    farmerName: 'Vikas Patil',
+    location: 'Ratnagiri, Maharashtra',
+    contact: '+91 99887 76655',
+    image: '🥭',
+    badge: 'Export Quality'
+  },
+  {
+    id: 5,
+    name: 'Yellow Arhar / Toor Dal',
+    category: 'Pulses',
+    price: 110,
+    unit: 'kg',
+    quantity: 300,
+    farmerName: 'Anil Reddy',
+    location: 'Guntur, Andhra Pradesh',
+    contact: '+91 94400 12345',
+    image: '🫘',
+    badge: 'Unpolished'
+  }
+];
+
+const INITIAL_SOIL_REPORTS = [
+  {
+    id: 'SOIL-892',
+    farmLocation: 'Green Field Acres, Sector 4, Ludhiana',
+    ph: 6.8,
+    nitrogen: '240 kg/ha (Medium)',
+    phosphorus: '18 kg/ha (Low)',
+    potassium: '310 kg/ha (High)',
+    status: 'Reviewed',
+    date: '2026-10-18',
+    recommendation: 'Soil condition is good. Apply 25kg DAP fertilizer per acre to boost Phosphorus levels before sowing.'
+  },
+  {
+    id: 'SOIL-904',
+    farmLocation: 'Ganga Bank Plot #12, Patna',
+    ph: 7.9,
+    nitrogen: '190 kg/ha (Low)',
+    phosphorus: '22 kg/ha (Medium)',
+    potassium: '210 kg/ha (Medium)',
+    status: 'Pending',
+    date: '2026-10-20',
+    recommendation: 'Sample submitted. Senior Agronomist analysis under process.'
+  }
+];
+
+const INITIAL_ORDERS = [
+  {
+    id: 'ORD-2026-109',
+    item: 'High-Yield Hybrid Rice Seeds (5 Packs)',
+    amount: 900,
+    date: '2026-10-19',
+    status: 'Processing',
+    estimatedDelivery: 'Oct 23, 2026'
+  },
+  {
+    id: 'ORD-2026-088',
+    item: 'Organic Bio-Fertilizer 50kg Bag',
+    amount: 1250,
+    date: '2026-10-14',
+    status: 'Delivered',
+    estimatedDelivery: 'Oct 17, 2026'
+  }
+];
+
+// Helper to generate dynamic pest alerts based on weather
+function generateWeatherAlerts(now, days) {
+  const alerts = [];
+  const next3 = days.slice(0, 3);
+
+  if (now.humidity >= 75 && now.temp >= 20 && now.temp <= 32) {
+    alerts.push({
+      type: 'Pest Warning',
+      severity: 'high',
+      icon: '🐛',
+      title: 'Fungal Blight Risk High',
+      desc: 'High humidity and warm climate favor fungal rust & late blight. Inspect crop undersides and consider organic neem spray or recommended fungicide.'
+    });
+  }
+  if (now.humidity < 40 && now.temp >= 33) {
+    alerts.push({
+      type: 'Insect Warning',
+      severity: 'medium',
+      icon: '🦗',
+      title: 'Aphids & Mite Surge Alert',
+      desc: 'Hot and dry spell detected. Sucking pests like spider mites and aphids multiply rapidly. Ensure light irrigation.'
+    });
+  }
+  if (next3.some(d => d.rain >= 65)) {
+    alerts.push({
+      type: 'Precipitation Alert',
+      severity: 'medium',
+      icon: '🌧️',
+      title: 'Heavy Rainfall Expected',
+      desc: 'Heavy rain probability exceeds 65% in next 72 hrs. Hold back on foliar pesticide spraying & urea top-dressing. Clear drainage channels.'
+    });
+  }
+  if (days.some(d => d.max >= 37)) {
+    alerts.push({
+      type: 'Heatwave',
+      severity: 'high',
+      icon: '🔥',
+      title: 'Heat Stress Danger',
+      desc: 'Temperatures above 37°C predicted. Irrigate crops during early morning or evening hours to protect crop blossoms.'
+    });
+  }
+  if (now.wind >= 22) {
+    alerts.push({
+      type: 'Wind Advisory',
+      severity: 'low',
+      icon: '💨',
+      title: 'Strong Wind Drift',
+      desc: 'Wind speed over 20 km/h. Avoid high-pressure chemical spraying today to prevent chemical drift to neighboring fields.'
+    });
+  }
+
+  return alerts;
+}
+
+// ==========================================
+// 3. MAIN REACT COMPONENT
+// ==========================================
+
+export default function App() {
+  // Global States
+  const [lang, setLang] = useState('en');
+  const [role, setRole] = useState('farmer'); // 'farmer' or 'admin'
+  const [activeTab, setActiveTab] = useState('weather'); // 'weather' | 'marketplace' | 'soil' | 'orders'
+
+  // Cart & Orders State
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [showCartModal, setShowCartModal] = useState(false);
+
+  // Weather System State
+  const [city, setCity] = useState('Patna');
+  const [weatherData, setWeatherData] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState('');
+
+  // Marketplace State
+  const [items, setItems] = useState(INITIAL_MARKETPLACE_ITEMS);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('none'); // 'low', 'high'
+  const [selectedSellerModal, setSelectedSellerModal] = useState(null);
+
+  // Soil Tracker State
+  const [soilReports, setSoilReports] = useState(INITIAL_SOIL_REPORTS);
+  const [newSoilForm, setNewSoilForm] = useState({ location: '', ph: '7.0', n: '', p: '', k: '' });
+  const [showSoilModal, setShowSoilModal] = useState(false);
+
+  // T: Translation accessor helper
+  const t = (key) => TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key] || key;
+
+  // ------------------------------------------
+  // Weather Search Handler (Open-Meteo API)
+  // ------------------------------------------
+  const fetchWeather = async (cityName) => {
+    if (!cityName.trim()) return;
+    setWeatherLoading(true);
+    setWeatherError('');
+
+    try {
+      // Step 1: Geocoding
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName.trim())}&count=1`
+      );
+      const geoData = await geoRes.json();
+      const place = geoData.results?.[0];
+
+      if (!place) {
+        setWeatherError(`Could not locate "${cityName}". Showing fallback regional data.`);
+        setWeatherLoading(false);
+        return;
+      }
+
+      // Step 2: Forecast
+      const forecastRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
+        `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+        `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+        `&timezone=auto`
+      );
+      const w = await forecastRes.json();
+
+      const daysFormatted = w.daily.time.map((timeStr, idx) => ({
+        date: new Date(timeStr).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-US', { weekday: 'short', day: 'numeric' }),
+        max: Math.round(w.daily.temperature_2m_max[idx]),
+        min: Math.round(w.daily.temperature_2m_min[idx]),
+        rain: w.daily.precipitation_probability_max[idx] ?? 0
+      }));
+
+      const nowFormatted = {
+        temp: Math.round(w.current.temperature_2m),
+        humidity: w.current.relative_humidity_2m,
+        wind: Math.round(w.current.wind_speed_10m),
+        text: WEATHER_CODES[w.current.weather_code] || 'Clear'
+      };
+
+      const alerts = generateWeatherAlerts(nowFormatted, daysFormatted);
+
+      setWeatherData({
+        placeName: `${place.name}${place.admin1 ? ', ' + place.admin1 : ''}`,
+        now: nowFormatted,
+        days: daysFormatted,
+        alerts
+      });
+    } catch (err) {
+      setWeatherError('Network error connecting to meteorological services. Please try again.');
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  // Load weather on initial mount
+  useEffect(() => {
+    fetchWeather(city);
+  }, []);
+
+  // ------------------------------------------
+  // Marketplace Functions
+  // ------------------------------------------
+  const filteredItems = useMemo(() => {
+    return items
+      .filter(item => {
+        const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              item.location.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'low') return a.price - b.price;
+        if (sortBy === 'high') return b.price - a.price;
+        return 0;
+      });
+  }, [items, selectedCategory, searchQuery, sortBy]);
+
+  const addToCart = (product) => {
+    setCart(prev => {
+      const existing = prev.find(i => i.id === product.id);
+      if (existing) {
+        return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (id) => {
+    setCart(prev => prev.filter(i => i.id !== id));
+  };
+
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+    const newOrder = {
+      id: `ORD-2026-${Math.floor(100 + Math.random() * 900)}`,
+      item: cart.map(c => `${c.name} (${c.qty} ${c.unit})`).join(', '),
+      amount: cart.reduce((acc, c) => acc + (c.price * c.qty), 0),
+      date: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      estimatedDelivery: '3 to 5 Days'
+    };
+    setOrders([newOrder, ...orders]);
+    setCart([]);
+    setShowCartModal(false);
+    setActiveTab('orders');
+  };
+
+  // ------------------------------------------
+  // Soil Form Submission
+  // ------------------------------------------
+  const handleSoilSubmit = (e) => {
+    e.preventDefault();
+    if (!newSoilForm.location) return;
+
+    const report = {
+      id: `SOIL-${Math.floor(800 + Math.random() * 200)}`,
+      farmLocation: newSoilForm.location,
+      ph: parseFloat(newSoilForm.ph) || 7.0,
+      nitrogen: `${newSoilForm.n || 200} kg/ha`,
+      phosphorus: `${newSoilForm.p || 20} kg/ha`,
+      potassium: `${newSoilForm.k || 250} kg/ha`,
+      status: 'Pending',
+      date: new Date().toISOString().split('T')[0],
+      recommendation: 'Sample submitted successfully. Awaiting agronomist review.'
+    };
+
+    setSoilReports([report, ...soilReports]);
+    setNewSoilForm({ location: '', ph: '7.0', n: '', p: '', k: '' });
+    setShowSoilModal(false);
+  };
+
+  const totalCartPrice = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+
+  return (
+    <div className="min-h-screen bg-emerald-900/10 text-slate-800 font-sans antialiased flex flex-col">
+
+      {/* ==========================================
+          HEADER / NAVBAR WITH LANGUAGE & ROLE TOGGLE
+          ========================================== */}
+      <header className="sticky top-0 z-40 bg-emerald-900 text-white shadow-lg border-b border-emerald-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Logo & Tagline */}
+          <div className="flex items-center space-x-3">
+            <div className="bg-emerald-500 p-2 rounded-xl text-emerald-950 font-bold shadow-inner">
+              <Leaf className="w-6 h-6 stroke-[2.5]" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-emerald-100 flex items-center gap-2">
+                {t('appTitle')}
+                <span className="text-xs bg-emerald-700 text-emerald-200 px-2 py-0.5 rounded-full font-mono font-normal">
+                  v2.6
+                </span>
+              </h1>
+              <p className="text-xs text-emerald-300 hidden sm:block">
+                {t('tagline')}
+              </p>
+            </div>
+          </div>
+
+          {/* Controls: Language Selector, Role Switcher, Cart */}
+          <div className="flex items-center space-x-3 ml-auto">
+            
+            {/* Language Dropdown */}
+            <div className="relative flex items-center bg-emerald-800 border border-emerald-600 rounded-lg px-2 py-1 text-xs">
+              <Globe className="w-4 h-4 text-emerald-300 mr-1.5" />
+              <select
+                value={lang}
+                onChange={(e) => setLang(e.target.value)}
+                className="bg-transparent text-white font-medium focus:outline-none cursor-pointer pr-2"
+              >
+                {LANGUAGES.map(l => (
+                  <option key={l.code} value={l.code} className="bg-emerald-900 text-white">
+                    {l.native} ({l.name})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Role Switcher */}
+            <div className="bg-emerald-950/80 p-1 rounded-lg border border-emerald-700 flex items-center text-xs">
+              <button
+                onClick={() => setRole('farmer')}
+                className={`px-3 py-1 rounded-md font-medium transition-all ${
+                  role === 'farmer' ? 'bg-emerald-500 text-emerald-950 font-bold shadow' : 'text-emerald-300 hover:text-white'
+                }`}
+              >
+                {t('farmerView')}
+              </button>
+              <button
+                onClick={() => setRole('admin')}
+                className={`px-3 py-1 rounded-md font-medium transition-all ${
+                  role === 'admin' ? 'bg-amber-500 text-amber-950 font-bold shadow' : 'text-emerald-300 hover:text-white'
+                }`}
+              >
+                {t('adminView')}
+              </button>
+            </div>
+
+            {/* Shopping Cart Trigger */}
+            <button
+              onClick={() => setShowCartModal(true)}
+              className="relative p-2 bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg border border-emerald-600 transition"
+              title="View Cart"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cart.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-emerald-950 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow">
+                  {cart.reduce((a, b) => a + b.qty, 0)}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Tabs Bar */}
+        <div className="bg-emerald-950/60 border-t border-emerald-800/80 px-4">
+          <div className="max-w-7xl mx-auto flex space-x-1 sm:space-x-4 overflow-x-auto py-2 text-sm scrollbar-none">
+            {[
+              { id: 'weather', label: t('weatherTitle'), icon: Cloud },
+              { id: 'marketplace', label: t('marketplaceTitle'), icon: ShoppingCart },
+              { id: 'soil', label: t('soilTitle'), icon: Layers },
+              { id: 'orders', label: t('ordersTitle'), icon: FileText }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+                    isActive
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'text-emerald-200 hover:bg-emerald-800/50 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </header>
+
+      {/* ==========================================
+          ADMIN BANNER OVERVIEW (IF ROLE IS ADMIN)
+          ========================================== */}
+      {role === 'admin' && (
+        <div className="bg-gradient-to-r from-amber-900 to-emerald-900 text-amber-100 border-b border-amber-700/50 px-4 py-4 shadow-inner">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center space-x-2 text-amber-400 font-semibold mb-2 text-sm">
+              <ShieldCheck className="w-5 h-5" />
+              <span>{t('adminStats')}</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-black/30 p-3 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-amber-300">{t('totalFarmers')}</p>
+                <p className="text-xl font-bold text-white">1,482</p>
+              </div>
+              <div className="bg-black/30 p-3 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-amber-300">{t('totalOrders')}</p>
+                <p className="text-xl font-bold text-white">{orders.length + 340}</p>
+              </div>
+              <div className="bg-black/30 p-3 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-amber-300">{t('pendingSoilReports')}</p>
+                <p className="text-xl font-bold text-amber-400">
+                  {soilReports.filter(r => r.status === 'Pending').length}
+                </p>
+              </div>
+              <div className="bg-black/30 p-3 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-amber-300">{t('marketRevenue')}</p>
+                <p className="text-xl font-bold text-emerald-400">₹4,82,900</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          MAIN CONTENT CONTAINER
+          ========================================== */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        {/* ------------------------------------------
+            MODULE 1: WEATHER & PEST ADVISORY WIDGET
+            ------------------------------------------ */}
+        {activeTab === 'weather' && (
+          <div className="space-y-6">
+            
+            {/* Header & City Search */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-emerald-950 flex items-center gap-2">
+                  <Sun className="w-7 h-7 text-amber-500" />
+                  {t('weatherTitle')}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">{t('weatherSub')}</p>
+              </div>
+
+              {/* City Search Form */}
+              <form
+                onSubmit={(e) => { e.preventDefault(); fetchWeather(city); }}
+                className="flex items-center gap-2"
+              >
+                <div className="relative flex-1 md:w-64">
+                  <MapPin className="w-4 h-4 text-emerald-600 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder={t('searchPlaceholder')}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={weatherLoading}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition disabled:opacity-50"
+                >
+                  {weatherLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  <span>{t('getForecast')}</span>
+                </button>
+              </form>
+            </div>
+
+            {weatherError && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                <span>{weatherError}</span>
+              </div>
+            )}
+
+            {/* Current Stats Grid */}
+            {weatherData && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-emerald-800 to-emerald-900 text-white p-5 rounded-2xl shadow-md">
+                    <p className="text-xs text-emerald-200 uppercase font-bold tracking-wider">{weatherData.placeName}</p>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-4xl font-extrabold">{weatherData.now.temp}°C</span>
+                      <span className="text-xs text-emerald-300 font-medium">{weatherData.now.text}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                      <Droplets className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-medium">{t('humidity')}</p>
+                      <p className="text-2xl font-bold text-slate-800">{weatherData.now.humidity}%</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
+                      <Wind className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-medium">{t('windSpeed')}</p>
+                      <p className="text-2xl font-bold text-slate-800">{weatherData.now.wind} <span className="text-xs font-normal">km/h</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                      <Sun className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-medium">{t('tempMax')}</p>
+                      <p className="text-2xl font-bold text-slate-800">{weatherData.days[0]?.max || '--'}°C</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pest & Weather Alerts Section */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    <span>Real-time Pest & Weather Advisory</span>
+                  </h3>
+
+                  {weatherData.alerts.length === 0 ? (
+                    <div className="p-4 bg-emerald-50 rounded-xl text-emerald-800 text-sm flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      <span>{t('noAlerts')}</span>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {weatherData.alerts.map((alert, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-4 rounded-xl border flex items-start space-x-3 ${
+                            alert.severity === 'high'
+                              ? 'bg-rose-50 border-rose-200 text-rose-900'
+                              : 'bg-amber-50 border-amber-200 text-amber-900'
+                          }`}
+                        >
+                          <span className="text-2xl">{alert.icon}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm">{alert.title}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-white/80 shadow-xs">
+                                {alert.type}
+                              </span>
+                            </div>
+                            <p className="text-xs mt-1 leading-relaxed opacity-90">{alert.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Interactive Chart */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">7-Day Temperature & Rain Forecast</h3>
+                  <div className="h-72 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={weatherData.days}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                        <YAxis yAxisId="temp" stroke="#f59e0b" fontSize={12} unit="°C" />
+                        <YAxis yAxisId="rain" orientation="right" stroke="#0284c7" fontSize={12} unit="%" />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff' }}
+                        />
+                        <Legend />
+                        <Bar yAxisId="rain" dataKey="rain" name={t('rainChance')} fill="#38bdf8" radius={[4, 4, 0, 0]} />
+                        <Line yAxisId="temp" type="monotone" dataKey="max" name={t('tempMax')} stroke="#f59e0b" strokeWidth={3} />
+                        <Line yAxisId="temp" type="monotone" dataKey="min" name={t('tempMin')} stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ------------------------------------------
+            MODULE 2: MARKETPLACE / CROP LISTING
+            ------------------------------------------ */}
+        {activeTab === 'marketplace' && (
+          <div className="space-y-6">
+            
+            {/* Header & Controls */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <ShoppingCart className="w-7 h-7 text-emerald-600" />
+                  {t('marketplaceTitle')}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Direct peer-to-peer produce & agricultural input sales</p>
+              </div>
+
+              {role === 'farmer' && (
+                <button
+                  onClick={() => alert("Open 'Add Crop Listing' Dialog in Full App")}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{t('addCrop')}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Filters Bar */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 justify-between">
+              
+              {/* Category Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                {['All', 'Vegetables', 'Fruits', 'Grains', 'Pulses', 'Seeds'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                      selectedCategory === cat
+                        ? 'bg-emerald-800 text-white shadow'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat === 'All' ? t('allCategories') : t(cat.toLowerCase()) || cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search & Sort Inputs */}
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1 md:w-48">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search crop or location..."
+                    className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 focus:outline-none"
+                >
+                  <option value="none">{t('sortByPrice')}</option>
+                  <option value="low">{t('lowToHigh')}</option>
+                  <option value="high">{t('highToLow')}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between"
+                >
+                  <div className="p-5">
+                    {/* Badge & Image */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                        {item.badge}
+                      </span>
+                      <span className="text-3xl">{item.image}</span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-slate-900">{item.name}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      {item.location}
+                    </p>
+
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                      <div>
+                        <span className="text-2xl font-extrabold text-emerald-700">₹{item.price}</span>
+                        <span className="text-xs text-slate-400"> / {item.unit}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        Qty: {item.quantity} {item.unit}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions Bar */}
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => setSelectedSellerModal(item)}
+                      className="px-3 py-1.5 border border-slate-300 hover:bg-white text-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>{t('contactFarmer')}</span>
+                    </button>
+
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1 shadow-xs"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5" />
+                      <span>{t('addToCart')}</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------
+            MODULE 3: SOIL ANALYSIS REPORT TRACKER
+            ------------------------------------------ */}
+        {activeTab === 'soil' && (
+          <div className="space-y-6">
+            
+            {/* Header */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <Layers className="w-7 h-7 text-amber-700" />
+                  {t('soilTitle')}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Track soil nutrients, pH, and agronomist recommendations</p>
+              </div>
+
+              <button
+                onClick={() => setShowSoilModal(true)}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('submitSoilSample')}</span>
+              </button>
+            </div>
+
+            {/* Reports List */}
+            <div className="space-y-4">
+              {soilReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-400">{report.id}</span>
+                        <span className="text-xs text-slate-400">• Submitted on {report.date}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-800 mt-1">{report.farmLocation}</h3>
+                    </div>
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold self-start md:self-auto ${
+                        report.status === 'Reviewed'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-amber-100 text-amber-800 border border-amber-300'
+                      }`}
+                    >
+                      {report.status === 'Reviewed' ? t('reviewed') : t('pending')}
+                    </span>
+                  </div>
+
+                  {/* Chemical Metrics Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                      <p className="text-xs text-slate-400 font-medium">{t('phLevel')}</p>
+                      <p className="text-lg font-bold text-slate-800">{report.ph}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                      <p className="text-xs text-slate-400 font-medium">{t('nitrogen')}</p>
+                      <p className="text-lg font-bold text-slate-800">{report.nitrogen}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                      <p className="text-xs text-slate-400 font-medium">{t('phosphorus')}</p>
+                      <p className="text-lg font-bold text-slate-800">{report.phosphorus}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                      <p className="text-xs text-slate-400 font-medium">{t('potassium')}</p>
+                      <p className="text-lg font-bold text-slate-800">{report.potassium}</p>
+                    </div>
+                  </div>
+
+                  {/* Recommendation Box */}
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-900">
+                    <p className="font-bold mb-1 flex items-center gap-1">
+                      <Sparkles className="w-4 h-4 text-emerald-700" />
+                      {t('soilRecoTitle')}
+                    </p>
+                    <p className="leading-relaxed">{report.recommendation}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------
+            MODULE 4: ORDER & CART MANAGEMENT
+            ------------------------------------------ */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-7 h-7 text-blue-600" />
+                {t('ordersTitle')}
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">Real-time tracking for input orders and crop purchases</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="divide-y divide-slate-100">
+                {orders.map((ord) => (
+                  <div key={ord.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-400">{ord.id}</span>
+                        <span className="text-xs text-slate-400">• {ord.date}</span>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mt-1">{ord.item}</h4>
+                      <p className="text-xs text-slate-500 mt-1">Est. Delivery: {ord.estimatedDelivery}</p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <span className="text-lg font-bold text-emerald-700">₹{ord.amount}</span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          ord.status === 'Delivered'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {ord.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* ==========================================
+          MODALS SECTION (Cart, Soil Submission, Seller)
+          ========================================== */}
+
+      {/* 1. Shopping Cart Drawer / Modal */}
+      {showCartModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end">
+          <div className="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b pb-4">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-emerald-600" />
+                  {t('cartSummary')}
+                </h3>
+                <button
+                  onClick={() => setShowCartModal(false)}
+                  className="text-slate-400 hover:text-slate-600 text-xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+
+              {cart.length === 0 ? (
+                <p className="text-slate-400 text-sm py-12 text-center">{t('cartEmpty')}</p>
+              ) : (
+                <div className="divide-y divide-slate-100 my-4 max-h-[60vh] overflow-y-auto">
+                  {cart.map((c) => (
+                    <div key={c.id} className="py-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{c.name}</p>
+                        <p className="text-xs text-slate-400">
+                          ₹{c.price} × {c.qty} {c.unit}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-emerald-700">₹{c.price * c.qty}</span>
+                        <button
+                          onClick={() => removeFromCart(c.id)}
+                          className="text-rose-500 hover:text-rose-700 p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {cart.length > 0 && (
+              <div className="border-t pt-4 space-y-3">
+                <div className="flex justify-between text-base font-bold text-slate-900">
+                  <span>{t('total')}</span>
+                  <span>₹{totalCartPrice}</span>
+                </div>
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition shadow"
+                >
+                  {t('checkout')}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Submit Soil Sample Modal */}
+      {showSoilModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">{t('submitSoilSample')}</h3>
+            <form onSubmit={handleSoilSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">{t('farmLocation')}</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Plot 4B, Karnal"
+                  value={newSoilForm.location}
+                  onChange={(e) => setNewSoilForm({ ...newSoilForm, location: e.target.value })}
+                  className="w-full p-2 border border-slate-200 rounded-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">{t('phLevel')}</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={newSoilForm.ph}
+                    onChange={(e) => setNewSoilForm({ ...newSoilForm, ph: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">{t('nitrogen')}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 210"
+                    value={newSoilForm.n}
+                    onChange={(e) => setNewSoilForm({ ...newSoilForm, n: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">{t('phosphorus')}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 18"
+                    value={newSoilForm.p}
+                    onChange={(e) => setNewSoilForm({ ...newSoilForm, p: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">{t('potassium')}</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 300"
+                    value={newSoilForm.k}
+                    onChange={(e) => setNewSoilForm({ ...newSoilForm, k: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSoilModal(false)}
+                  className="flex-1 py-2 border border-slate-200 rounded-lg font-bold text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Seller Contact Modal */}
+      {selectedSellerModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <span className="text-4xl">{selectedSellerModal.image}</span>
+            <h3 className="text-lg font-bold text-slate-900 mt-2">{selectedSellerModal.name}</h3>
+            <p className="text-xs text-slate-400">{selectedSellerModal.location}</p>
+
+            <div className="my-4 bg-slate-50 p-4 rounded-xl text-left text-xs space-y-2">
+              <p className="flex items-center gap-2">
+                <User className="w-4 h-4 text-emerald-600" />
+                <span className="font-bold">{selectedSellerModal.farmerName}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-emerald-600" />
+                <span>{selectedSellerModal.contact}</span>
+              </p>
+            </div>
+
+            <button
+              onClick={() => setSelectedSellerModal(null)}
+              className="w-full py-2 bg-slate-800 text-white rounded-xl text-xs font-bold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          FOOTER
+          ========================================== */}
+      <footer className="bg-emerald-950 text-emerald-400 text-xs py-6 border-t border-emerald-900 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
+          <p>© 2026 AgriTech Multilingual Portal. Supporting Indian Farmers across 8 Languages.</p>
+          <p className="text-emerald-600">Built with React.js & Tailwind CSS</p>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
