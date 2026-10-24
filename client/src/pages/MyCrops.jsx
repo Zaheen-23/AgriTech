@@ -4,7 +4,7 @@ import FarmerNavbar from '../components/FarmerNavbar';
 import { useLanguage } from '../context/LanguageContext';
 import './MyCrops.css';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://agritech-backend-qadd.onrender.com/api';
 const CROPS_API = `${API}/crops`;
 const MASTER_CROPS_API = `${API}/master-crops`;
 
