@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 
-const API = 'http://localhost:5000/api/products';
+const API = 'https://agritech-backend-qadd.onrender.com/api/products';
 
 const CATEGORY_ICONS = {
   vegetables: '🥦',
