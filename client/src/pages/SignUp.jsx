@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
-const API = 'http://localhost:5000/api/auth';
+const API = 'https://agritech-backend-qadd.onrender.com/api/auth';
 
 function SignUp() {
   const navigate = useNavigate();
