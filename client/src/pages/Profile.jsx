@@ -3,10 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 
-/* ------------------------------------------------------------------ */
-/*  Config                                                             */
-/* ------------------------------------------------------------------ */
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE = import.meta.env.VITE_API_URL || 'https://agritech-backend-qadd.onrender.com';
 const API = `${BASE}/api`;
 
 const PLACEHOLDER_PHONE = '0000000000'; // signup saves this until a real number is added
