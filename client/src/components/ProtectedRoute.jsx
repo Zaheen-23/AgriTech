@@ -15,7 +15,8 @@ function ProtectedRoute({ allowedRoles, children }) {
   role: user?.role,
   path: window.location.pathname
 });
- console.log("ProtectedRoute user:", user);
+  console.log("ProtectedRoute user:", user);
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
