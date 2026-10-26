@@ -1,6 +1,6 @@
+
 const mongoose = require('mongoose');
 
-// 1. User Schema defining
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -21,15 +21,29 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['farmer', 'buyer', 'agriculturalist', 'admin'],
-        default: 'farmer' 
+        default: 'farmer'
     },
     phone: {
         type: String,
         required: true
+    },
+
+    // Email verification
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String,
+        default: undefined
+    },
+    emailVerificationExpires: {
+        type: Date,
+        default: undefined
     }
+
 }, {
-    timestamps: true //  created_at and updated_at 
+    timestamps: true
 });
 
-// 2. Model - Export 
 module.exports = mongoose.model('User', userSchema);
