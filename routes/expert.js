@@ -1,30 +1,40 @@
+
 const express = require('express');
 const router = express.Router();
 const ExpertConsultation = require('../Models/ExpertConsultation');
 const authMiddleware = require('../middleware/authMiddleware');
 
+// Helper: sirf Expert aur Admin allowed
+const expertOnly = (req, res, next) => {
+    if (!['agriculturalist', 'admin'].includes(req.user?.role)) {
+        return res.status(403).json({
+            message: 'Only experts and admins can access this route.'
+        });
+    }
+    next();
+};
+
 // ==========================================
-// 1. CREATE Operations
+// 1. CREATE: Farmer consultation
 // ==========================================
 
-// Create a new consultation query (Draft or Finalize)
 router.post('/create', async (req, res) => {
     try {
         const { farmer, subject, question, isFinal } = req.body;
-        
-        // Agar user finalize karta hai toh status 'Pending' banega, warna 'Draft'
-        const initialStatus = isFinal ? 'Pending' : 'Draft';
 
         const newConsultation = new ExpertConsultation({
             farmer,
             subject,
             question,
-            status: initialStatus
+            status: isFinal ? 'Pending' : 'Draft'
         });
 
         await newConsultation.save();
+
         res.status(201).json({
-            message: isFinal ? 'Consultation query submitted successfully!' : 'Consultation query saved as Draft!',
+            message: isFinal
+                ? 'Consultation query submitted successfully!'
+                : 'Consultation query saved as Draft!',
             consultation: newConsultation
         });
     } catch (err) {
@@ -32,25 +42,49 @@ router.post('/create', async (req, res) => {
     }
 });
 
-
 // ==========================================
-// 2. READ Operations
+// 2. READ: Questions for Experts
 // ==========================================
 
-// Get All Consultation Queries (For Experts/Admins or listing)
-router.get('/all', async (req, res) => {
+router.get('/all', authMiddleware, expertOnly, async (req, res) => {
     try {
-        const queries = await ExpertConsultation.find()
-            .populate('farmer', 'name email phone')
+        const queries = await ExpertConsultation.find({
+            $or: [
+                { status: 'Pending' },
+                { status: 'Answered', expert: req.user._id }
+            ]
+        })
+            .populate('farmer', 'name')
             .populate('expert', 'name email')
             .sort({ createdAt: -1 });
+
         res.status(200).json(queries);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Get Single Consultation Query by ID
+// ==========================================
+// 3. READ: Farmer's Queries
+// Put this BEFORE /:id
+// ==========================================
+
+router.get('/farmer/:farmerId', async (req, res) => {
+    try {
+        const farmerQueries = await ExpertConsultation.find({
+            farmer: req.params.farmerId
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json(farmerQueries);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 4. READ: Single Query
+// ==========================================
+
 router.get('/:id', async (req, res) => {
     try {
         const query = await ExpertConsultation.findById(req.params.id)
@@ -58,7 +92,9 @@ router.get('/:id', async (req, res) => {
             .populate('expert', 'name email');
 
         if (!query) {
-            return res.status(404).json({ message: 'Consultation query not found!' });
+            return res.status(404).json({
+                message: 'Consultation query not found!'
+            });
         }
 
         res.status(200).json(query);
@@ -67,37 +103,24 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Get Queries specific to a Farmer
-router.get('/farmer/:farmerId', async (req, res) => {
-    try {
-        const farmerQueries = await ExpertConsultation.find({ farmer: req.params.farmerId })
-            .sort({ createdAt: -1 });
-        res.status(200).json(farmerQueries);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-
 // ==========================================
-// 3. UPDATE Operations
+// 5. UPDATE: Farmer edits a query
 // ==========================================
 
-// Update Query (Farmer editing Draft/Pending Query or Finalizing Draft)
 router.put('/update/:id', async (req, res) => {
     try {
         const { subject, question, isFinal } = req.body;
         const query = await ExpertConsultation.findById(req.params.id);
 
         if (!query) {
-            return res.status(404).json({ message: 'Consultation query not found!' });
+            return res.status(404).json({
+                message: 'Consultation query not found!'
+            });
         }
 
-        // Field updates
         if (subject) query.subject = subject;
         if (question) query.question = question;
 
-        // Draft to Finalize logic
         if (isFinal && query.status === 'Draft') {
             query.status = 'Pending';
         }
@@ -114,48 +137,86 @@ router.put('/update/:id', async (req, res) => {
     }
 });
 
-// Answer Query (Expert / Admin responding to query)
-router.put('/answer/:id', async (req, res) => {
-    try {
-        const { answer, expert } = req.body;
+// ==========================================
+// 6. ANSWER: Expert responds to a question
+// ==========================================
 
-        const query = await ExpertConsultation.findById(req.params.id);
+router.put(
+    '/answer/:id',
+    authMiddleware,
+    expertOnly,
+    async (req, res) => {
+        try {
+            const { answer } = req.body;
 
-        if (!query) {
-            return res.status(404).json({ message: 'Consultation query not found!' });
+            if (typeof answer !== 'string' || !answer.trim()) {
+                return res.status(400).json({
+                    message: 'Please provide an answer.'
+                });
+            }
+
+            const query = await ExpertConsultation.findById(req.params.id);
+
+            if (!query) {
+                return res.status(404).json({
+                    message: 'Consultation query not found!'
+                });
+            }
+
+            // Doosre expert ka answered question overwrite nahi hoga
+            if (
+                query.status === 'Answered' &&
+                String(query.expert) !== String(req.user._id) &&
+                req.user.role !== 'admin'
+            ) {
+                return res.status(403).json({
+                    message: 'This question has already been answered by another expert.'
+                });
+            }
+
+            if (query.status !== 'Pending' && query.status !== 'Answered') {
+                return res.status(400).json({
+                    message: 'Only submitted questions can be answered.'
+                });
+            }
+
+            query.answer = answer.trim();
+
+            // Expert ID client se nahi, verified login se aayegi
+            query.expert = req.user._id;
+            query.status = 'Answered';
+            query.updatedAt = Date.now();
+
+            await query.save();
+
+            res.status(200).json({
+                message: 'Expert response saved successfully!',
+                consultation: query
+            });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
         }
-
-        query.answer = answer;
-        query.expert = expert;
-        query.status = 'Answered';
-        query.updatedAt = Date.now();
-
-        await query.save();
-
-        res.status(200).json({
-            message: 'Expert response updated successfully!',
-            consultation: query
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
     }
-});
-
+);
 
 // ==========================================
-// 4. DELETE Operation
+// 7. DELETE: Existing delete operation
 // ==========================================
 
-// Delete Query by ID
 router.delete('/delete/:id', async (req, res) => {
     try {
-        const deletedQuery = await ExpertConsultation.findByIdAndDelete(req.params.id);
+        const deletedQuery =
+            await ExpertConsultation.findByIdAndDelete(req.params.id);
 
         if (!deletedQuery) {
-            return res.status(404).json({ message: 'Consultation query not found!' });
+            return res.status(404).json({
+                message: 'Consultation query not found!'
+            });
         }
 
-        res.status(200).json({ message: 'Consultation query deleted successfully!' });
+        res.status(200).json({
+            message: 'Consultation query deleted successfully!'
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
