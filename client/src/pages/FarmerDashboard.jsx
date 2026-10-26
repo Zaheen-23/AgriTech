@@ -825,7 +825,9 @@ function FarmerDashboard() {
             </div>
           </div>
         </section>
-
+<section className="fd-section">
+  <AICropDoctor />
+</section>
         <section className="fd-section fd-panels" id="weather">
           <div className="fd-card">
             <h3>{t('weatherCardTitle')}</h3>
@@ -1191,9 +1193,6 @@ function FarmerDashboard() {
           </div>
         </section>
 
-        <section className="fd-section">
-  <AICropDoctor />
-</section>
       </main>
     </div>
   );
