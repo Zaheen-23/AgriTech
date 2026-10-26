@@ -117,7 +117,7 @@ function AICropDoctor() {
     {
       id: 1,
       role: 'bot',
-      text: 'Namaste! 🌱 I am AgriBot, your AI Crop Doctor. Ask me about yellow leaves, pests, fertilizer, irrigation or weather.'
+      text: 'Hello! 🌱 I am AgriBot, your AI Crop Doctor. Hoping to make your day more interesting. Ask me about yellow leaves, pests, fertilizer, irrigation or weather.'
     }
   ]);
 
