@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 import { useLanguage } from '../context/LanguageContext';
+import AICropDoctor from '../components/AICropDoctor';
 
 const API = 'https://agritech-backend-qadd.onrender.com/api';
 
@@ -1189,6 +1190,10 @@ function FarmerDashboard() {
             </Link>
           </div>
         </section>
+
+        <section className="fd-section">
+  <AICropDoctor />
+</section>
       </main>
     </div>
   );
