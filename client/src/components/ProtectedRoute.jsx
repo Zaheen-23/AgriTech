@@ -1,4 +1,5 @@
-import { Navigate } from 'react-router-dom';
+
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const HOME = {
@@ -10,20 +11,22 @@ const HOME = {
 
 function ProtectedRoute({ allowedRoles, children }) {
   const { user } = useAuth();
-  console.log("Route check:", {
-  user,
-  role: user?.role,
-  path: window.location.pathname
-});
-  console.log("ProtectedRoute user:", user);
+  const location = useLocation();
+
+  console.log('Route check:', {
+    user,
+    role: user?.role,
+    path: location.pathname
+  });
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  const role = String(user.role || '').toLowerCase();
+
   if (allowedRoles) {
     const allowed = allowedRoles.map((r) => r.toLowerCase());
-    const role = String(user.role).toLowerCase();
 
     if (!allowed.includes(role)) {
       return <Navigate to={HOME[role] || '/'} replace />;
