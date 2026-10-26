@@ -16,7 +16,7 @@ import FarmerDashboard from './pages/FarmerDashboard';
 import BuyerDashboard from './pages/BuyerDashboard';
 import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-
+import AICropDoctorPage from './pages/AICropDoctorPage';
 import CropMonitoring from './pages/CropMonitoring';
 import Farms from './pages/Farms';
 import Shop from './pages/Shop';
@@ -623,7 +623,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          {/* AI Crop Doctor: Farmer only */}
+<Route
+  path="/ai-crop-doctor"
+  element={
+    <ProtectedRoute allowedRoles={farmerOnly}>
+      <AICropDoctorPage />
+    </ProtectedRoute>
+  }
+/>
           {/* Soil Analysis: one route only */}
           <Route
             path="/soil"
