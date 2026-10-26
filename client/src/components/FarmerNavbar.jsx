@@ -1,11 +1,13 @@
+
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
-// Har role ke liye exact specific navigation links
+// Har role ke liye navigation links
 const MENUS = {
   farmer: [
     { to: '/dashboard/farmer', key: 'dashboard', end: true },
+    { to: '/ai-crop-doctor', label: '🤖 AI Crop Doctor' },
     { to: '/farms', key: 'farms' },
     { to: '/soil', key: 'soil' },
     { to: '/crops', key: 'myCrops' },
@@ -61,7 +63,9 @@ function FarmerNavbar() {
     .trim()
     .toLowerCase();
 
-  const normalizedRole = role === 'expert' ? 'agriculturalist' : role;
+  const normalizedRole =
+    role === 'expert' ? 'agriculturalist' : role;
+
   const links = MENUS[normalizedRole] || MENUS.farmer;
 
   const handleLogout = () => {
@@ -87,7 +91,7 @@ function FarmerNavbar() {
                 `ag-link ${isActive ? 'active' : ''}`
               }
             >
-              {t(link.key)}
+              {link.label || t(link.key)}
             </NavLink>
           ))}
         </div>
@@ -98,7 +102,9 @@ function FarmerNavbar() {
             <select
               aria-label="Select language"
               value={language}
-              onChange={(event) => setLanguage(event.target.value)}
+              onChange={(event) =>
+                setLanguage(event.target.value)
+              }
             >
               <option value="en">English</option>
               <option value="hi">हिन्दी</option>
