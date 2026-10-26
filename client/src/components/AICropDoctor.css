@@ -1,0 +1,399 @@
+
+.crop-doctor {
+  width: 100%;
+  max-width: 850px;
+  margin: 24px auto;
+  background: #ffffff;
+  border: 1px solid #dce9dd;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(22, 101, 52, 0.10);
+  font-family: Arial, sans-serif;
+  color: #183b27;
+}
+
+.crop-doctor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  color: white;
+  background: linear-gradient(120deg, #14532d, #16a34a);
+}
+
+.crop-doctor-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.crop-doctor-logo {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  font-size: 25px;
+}
+
+.crop-doctor-brand h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.crop-doctor-brand p {
+  margin: 5px 0 0;
+  color: #dcfce7;
+  font-size: 13px;
+}
+
+.crop-doctor-online {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.online-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #86efac;
+  box-shadow: 0 0 10px #86efac;
+  animation: crop-pulse 1.5s infinite;
+}
+
+.crop-doctor-intro {
+  padding: 22px 24px 14px;
+}
+
+.crop-doctor-eyebrow {
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.crop-doctor-intro h3 {
+  margin: 9px 0 7px;
+  color: #163d26;
+  font-size: 23px;
+}
+
+.crop-doctor-intro > p {
+  margin: 0;
+  color: #718078;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.crop-doctor-chat {
+  height: 350px;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #f5f9f5;
+  scroll-behavior: smooth;
+}
+
+.crop-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 92%;
+}
+
+.crop-message-user {
+  align-self: flex-end;
+  justify-content: flex-end;
+}
+
+.crop-message-bot {
+  align-self: flex-start;
+}
+
+.crop-message-avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #dcfce7;
+  font-size: 18px;
+}
+
+.crop-message-content {
+  min-width: 0;
+  padding: 13px 16px;
+  border: 1px solid #e0e9e1;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(20, 83, 45, 0.04);
+}
+
+.crop-message-user .crop-message-content {
+  color: #ffffff;
+  background: #16803d;
+  border-color: #16803d;
+  border-radius: 16px 16px 4px 16px;
+}
+
+.crop-message-content > p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.crop-advice h4 {
+  margin: 0 0 15px;
+  color: #166534;
+  font-size: 17px;
+}
+
+.crop-advice-block {
+  padding: 12px 0;
+  border-top: 1px solid #e8efe8;
+}
+
+.crop-advice-block strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #285b3b;
+  font-size: 13px;
+}
+
+.crop-advice-block p {
+  margin: 0;
+  color: #53665a;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.crop-advice-followup {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #effaf0;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.crop-advice small {
+  display: block;
+  margin-top: 12px;
+  color: #7b887e;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.crop-typing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e0e9e1;
+  border-radius: 15px;
+  color: #4b6653;
+}
+
+.crop-typing > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22a052;
+  animation: crop-bounce 0.8s infinite alternate;
+}
+
+.crop-typing > span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.crop-typing > span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.crop-typing p {
+  flex-basis: 100%;
+  margin: 7px 0 0;
+  font-size: 12px;
+}
+
+.crop-doctor-quick {
+  padding: 17px 24px 10px;
+}
+
+.crop-quick-heading {
+  margin: 0 0 11px;
+  color: #708075;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.crop-quick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crop-quick-list button {
+  padding: 9px 12px;
+  border: 1px solid #cde6d1;
+  border-radius: 30px;
+  background: #f2fbf3;
+  color: #23663a;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.crop-quick-list button:hover:not(:disabled) {
+  color: white;
+  background: #16803d;
+}
+
+.crop-quick-list button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.crop-doctor-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5eee5;
+}
+
+.crop-doctor-input-area input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid #d6e4d8;
+  border-radius: 12px;
+  outline: none;
+  background: #f9fcf9;
+  color: #183b27;
+  font-size: 14px;
+}
+
+.crop-doctor-input-area input:focus {
+  border-color: #22a052;
+  box-shadow: 0 0 0 3px rgba(34, 160, 82, 0.1);
+}
+
+.crop-doctor-input-area button {
+  padding: 12px 19px;
+  border: none;
+  border-radius: 12px;
+  background: #16803d;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.crop-doctor-input-area button:hover:not(:disabled) {
+  background: #11632f;
+}
+
+.crop-doctor-input-area button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crop-doctor-disclaimer {
+  margin: 0;
+  padding: 0 24px 18px;
+  color: #879188;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@keyframes crop-pulse {
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 4px #86efac;
+  }
+}
+
+@keyframes crop-bounce {
+  to {
+    transform: translateY(-4px);
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 600px) {
+  .crop-doctor {
+    margin: 12px auto;
+    border-radius: 16px;
+  }
+
+  .crop-doctor-header {
+    padding: 16px;
+  }
+
+  .crop-doctor-brand h2 {
+    font-size: 17px;
+  }
+
+  .crop-doctor-online {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .crop-doctor-intro {
+    padding: 18px 16px 12px;
+  }
+
+  .crop-doctor-intro h3 {
+    font-size: 19px;
+  }
+
+  .crop-doctor-chat {
+    height: 320px;
+    padding: 16px 12px;
+  }
+
+  .crop-message {
+    max-width: 98%;
+  }
+
+  .crop-message-content {
+    padding: 11px;
+  }
+
+  .crop-doctor-quick {
+    padding: 15px 16px 8px;
+  }
+
+  .crop-doctor-input-area {
+    padding: 13px 16px;
+    gap: 7px;
+  }
+
+  .crop-doctor-input-area button {
+    padding: 11px 13px;
+  }
+
+  .crop-doctor-disclaimer {
+    padding: 0 16px 15px;
+  }
+}
