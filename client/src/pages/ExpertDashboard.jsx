@@ -1,8 +1,9 @@
+
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FarmerNavbar from '../components/FarmerNavbar';
 import { useLanguage } from '../context/LanguageContext';
-import './ExpertDashboard.css'
+import './ExpertDashboard.css';
 
 const API = 'https://agritech-backend-qadd.onrender.com/api/expert';
 
@@ -18,26 +19,43 @@ function ExpertDashboard() {
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState(null);
 
+  // Load Pending questions and this expert's own Answered questions
   const loadQueries = useCallback(async () => {
     setError('');
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/all`);
+      const token = localStorage.getItem('token');
 
-      if (!res.ok) {
-        throw new Error(t('loadQuestionsError'));
+      if (!token) {
+        throw new Error('Login session missing. Please log in again.');
       }
 
+      const res = await fetch(`${API}/all`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.message || data.error || t('loadQuestionsError')
+        );
+      }
 
       setQueries(
         Array.isArray(data)
           ? data.filter((q) => q.status !== 'Draft')
           : []
       );
-    } catch {
-      setError(t('loadQuestionsCatchError') || 'Could not load questions.');
+    } catch (err) {
+      setError(
+        err.message ||
+        t('loadQuestionsCatchError') ||
+        'Could not load questions.'
+      );
     } finally {
       setLoading(false);
     }
@@ -47,6 +65,7 @@ function ExpertDashboard() {
     loadQueries();
   }, [loadQueries]);
 
+  // Submit an answer
   const sendAnswer = async (id) => {
     const answerText = (answers[id] || '').trim();
 
@@ -54,31 +73,41 @@ function ExpertDashboard() {
     setNotice('');
 
     if (!answerText) {
-      setError(t('writeAnswerFirstError') || 'Please write an answer first.');
+      setError(
+        t('writeAnswerFirstError') || 'Please write an answer first.'
+      );
       return;
     }
 
     setSendingId(id);
 
     try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error('Login session missing. Please log in again.');
+      }
+
       const res = await fetch(`${API}/answer/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          answer: answerText,
-          expert: user?.id || user?._id
+          answer: answerText
         })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(
-          data.error || data.message || t('sendAnswerError') || 'Could not send answer.'
+        throw new Error(
+          data.message ||
+          data.error ||
+          t('sendAnswerError') ||
+          'Could not send answer.'
         );
-        return;
       }
 
       setAnswers((previous) => ({
@@ -86,10 +115,17 @@ function ExpertDashboard() {
         [id]: ''
       }));
 
-      setNotice(t('answerSentSuccess') || 'Answer sent successfully!');
+      setNotice(
+        t('answerSentSuccess') || 'Answer sent successfully!'
+      );
+
       await loadQueries();
-    } catch {
-      setError(t('connectServerError') || 'Server connection error.');
+    } catch (err) {
+      setError(
+        err.message ||
+        t('connectServerError') ||
+        'Server connection error.'
+      );
     } finally {
       setSendingId(null);
     }
@@ -104,22 +140,26 @@ function ExpertDashboard() {
       <FarmerNavbar />
 
       <main className="expert-container">
-        {/* Top Hero Section */}
         <section className="expert-hero">
           <div>
-            <span className="expert-eyebrow">{t('agritechExpertDeskCrumb') || 'AGRITECH EXPERT DESK'}</span>
+            <span className="expert-eyebrow">
+              {t('agritechExpertDeskCrumb') || 'AGRITECH EXPERT DESK'}
+            </span>
+
             <h1 className="expert-title">
               {t('welcomeExpertPrefix') || 'Welcome, '}
               {user?.name || t('expertDefaultName') || 'Expert'} 🧑‍🔬
             </h1>
+
             <p className="expert-subtitle">
-              {t('expertDeskSubtitle') || 'Review farmer queries and provide expert agricultural guidance.'}
+              {t('expertDeskSubtitle') ||
+                'Review farmer queries and provide expert agricultural guidance.'}
             </p>
           </div>
+
           <div className="expert-hero-badge">🌾 Expert Advisory</div>
         </section>
 
-        {/* Overview Stats */}
         <section className="expert-stats">
           <article className="expert-stat-card">
             <div className="expert-stat-icon-wrap">📩</div>
@@ -127,9 +167,7 @@ function ExpertDashboard() {
               <div className="expert-stat-label">
                 {t('pendingQuestionsLabel') || 'Pending Queries'}
               </div>
-              <div className="expert-stat-number">
-                {pending.length}
-              </div>
+              <div className="expert-stat-number">{pending.length}</div>
             </div>
           </article>
 
@@ -139,9 +177,7 @@ function ExpertDashboard() {
               <div className="expert-stat-label">
                 {t('answeredQuestionsLabel') || 'Answered Queries'}
               </div>
-              <div className="expert-stat-number">
-                {answered.length}
-              </div>
+              <div className="expert-stat-number">{answered.length}</div>
             </div>
           </article>
         </section>
@@ -158,7 +194,6 @@ function ExpertDashboard() {
           </div>
         )}
 
-        {/* Questions Section */}
         <section className="expert-questions-section">
           <div className="expert-toolbar">
             <div className="expert-tabs">
@@ -166,18 +201,15 @@ function ExpertDashboard() {
                 <button
                   key={item}
                   type="button"
-                  className={`expert-tab ${
-                    tab === item ? 'active' : ''
-                  }`}
+                  className={`expert-tab ${tab === item ? 'active' : ''}`}
                   onClick={() => setTab(item)}
                 >
                   {item === 'Pending'
                     ? t('pendingTab') || 'Pending'
                     : t('answeredTab') || 'Answered'}
+
                   <span className="expert-tab-count">
-                    {item === 'Pending'
-                      ? pending.length
-                      : answered.length}
+                    {item === 'Pending' ? pending.length : answered.length}
                   </span>
                 </button>
               ))}
@@ -199,7 +231,9 @@ function ExpertDashboard() {
           {loading && (
             <div className="expert-empty-state">
               <span className="expert-loader" />
-              <p>{t('loadingQuestionsText') || 'Loading queries...'}</p>
+              <p>
+                {t('loadingQuestionsText') || 'Loading queries...'}
+              </p>
             </div>
           )}
 
@@ -234,19 +268,21 @@ function ExpertDashboard() {
                     </span>
 
                     <h3>
-                      {q.subject || t('untitledQuestion') || 'Untitled Query'}
+                      {q.subject ||
+                        t('untitledQuestion') ||
+                        'Untitled Query'}
                     </h3>
                   </div>
 
                   <div className="expert-question-meta">
                     <span>
-                      👤 {q.farmer?.name || t('farmerRoleDefault') || 'Farmer'}
+                      👤 {q.farmer?.name || 'Farmer'}
                     </span>
                     <span>
                       📅{' '}
                       {q.createdAt
                         ? new Date(q.createdAt).toLocaleDateString()
-                        : t('dateUnavailable') || 'N/A'}
+                        : 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -268,7 +304,10 @@ function ExpertDashboard() {
                       id={`answer-${q._id}`}
                       rows={4}
                       className="expert-answer-input"
-                      placeholder={t('answerPlaceholder') || 'Write your professional advice here...'}
+                      placeholder={
+                        t('answerPlaceholder') ||
+                        'Write your professional advice here...'
+                      }
                       value={answers[q._id] || ''}
                       onChange={(e) =>
                         setAnswers((previous) => ({
@@ -294,9 +333,13 @@ function ExpertDashboard() {
                   </div>
                 ) : (
                   <div className="expert-answer-display">
-                    <strong>✓ {t('yourAnswerLabel') || 'Your Answer:'}</strong>
+                    <strong>
+                      ✓ {q.expert?.name || 'Expert'} ka Answer:
+                    </strong>
                     <p>
-                      {q.answer || t('noAnswerTextAvailable') || 'No answer recorded.'}
+                      {q.answer ||
+                        t('noAnswerTextAvailable') ||
+                        'No answer recorded.'}
                     </p>
                   </div>
                 )}
