@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ExpertConsultation = require('../Models/ExpertConsultation');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // ==========================================
 // 1. CREATE Operations
